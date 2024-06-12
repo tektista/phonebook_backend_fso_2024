@@ -1,6 +1,9 @@
 const express = require("express");
 const app = express();
 
+app.use(express.json());
+app.use(express.urlencoded({extended: true}));
+
 let phonebook = [
   {
     name: "Arto Hellas",
@@ -56,4 +59,19 @@ app.delete('/api/persons/:id', (request, response) => {
 const PORT = 3001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+});
+
+app.post("/api/persons", (request, response) => {
+
+    console.log(request.body);
+
+    const newPerson = {
+        name: request.body.name,
+        number: request.body.number,
+        id: Math.floor(Math.random() * 1000),
+    }
+
+    phonebook.push(newPerson);
+
+    response.status(200).json(newPerson);
 });
