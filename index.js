@@ -65,6 +65,14 @@ app.post("/api/persons", (request, response) => {
 
     console.log(request.body);
 
+    const found = phonebook.find((person) => person.name.toLowerCase() === request.body.name.toLowerCase());
+
+    if (found) {
+        response.status(400).json({
+            error: 'name must be unique'
+        });
+    }
+
     const newPerson = {
         name: request.body.name,
         number: request.body.number,
