@@ -1,8 +1,21 @@
-const express = require("express");
+const express = require("express")
+const morgan = require("morgan");
+
 const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
+app.use(morgan("tiny"));
+
+const requestLogger = (request, response, next) => {
+    console.log('Method:', request.method)
+    console.log('Path:  ', request.path)
+    console.log('Body:  ', request.body)
+    console.log('---')
+    next()
+  }
+
+  app.use(requestLogger);
 
 let phonebook = [
   {
@@ -83,3 +96,4 @@ app.post("/api/persons", (request, response) => {
 
     response.status(200).json(newPerson);
 });
+
