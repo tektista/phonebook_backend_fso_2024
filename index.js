@@ -1,11 +1,13 @@
 const express = require("express")
 const morgan = require("morgan");
-
+const cors = require('cors')
 const app = express();
 
+app.use(cors())
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
-app.use(morgan("tiny"));
+morgan.token('reqBody', function (req, res) { return JSON.stringify(req.body) });
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :reqBody'));
 
 const requestLogger = (request, response, next) => {
     console.log('Method:', request.method)
@@ -15,7 +17,8 @@ const requestLogger = (request, response, next) => {
     next()
   }
 
-  app.use(requestLogger);
+ //app.use(requestLogger);
+
 
 let phonebook = [
   {
@@ -40,7 +43,7 @@ let phonebook = [
   },
 ];
 
-app.get("/", (request, response) => {
+app.get("/api", (request, response) => {
   response.send(`
   <p>Phonebook has info for ${phonebook.length} people</p>
   <p>${new Date().toISOString()}</p>
@@ -69,14 +72,7 @@ app.delete('/api/persons/:id', (request, response) => {
     response.status(204).end()
   })
 
-const PORT = 3001;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-
 app.post("/api/persons", (request, response) => {
-
-    console.log(request.body);
 
     const found = phonebook.find((person) => person.name.toLowerCase() === request.body.name.toLowerCase());
 
@@ -97,3 +93,7 @@ app.post("/api/persons", (request, response) => {
     response.status(200).json(newPerson);
 });
 
+const PORT = 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
