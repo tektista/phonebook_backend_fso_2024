@@ -1,25 +1,32 @@
-const express = require("express")
+const express = require("express");
+const mongoose = require('mongoose')
 const morgan = require("morgan");
-const cors = require('cors')
+const cors = require("cors");
+const Person = require('./models/Person')
 const app = express();
 
-app.use(express.static('dist'))
-app.use(cors())
+app.use(express.static("dist"));
+app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({extended: true}));
-morgan.token('reqBody', function (req, res) { return JSON.stringify(req.body) });
-app.use(morgan(':method :url :status :res[content-length] - :response-time ms :reqBody'));
+app.use(express.urlencoded({ extended: true }));
+morgan.token("reqBody", function (req, res) {
+  return JSON.stringify(req.body);
+});
+app.use(
+  morgan(
+    ":method :url :status :res[content-length] - :response-time ms :reqBody"
+  )
+);
 
 const requestLogger = (request, response, next) => {
-    console.log('Method:', request.method)
-    console.log('Path:  ', request.path)
-    console.log('Body:  ', request.body)
-    console.log('---')
-    next()
-  }
+  console.log("Method:", request.method);
+  console.log("Path:  ", request.path);
+  console.log("Body:  ", request.body);
+  console.log("---");
+  next();
+};
 
- //app.use(requestLogger);
-
+//app.use(requestLogger);
 
 let phonebook = [
   {
@@ -45,10 +52,10 @@ let phonebook = [
 ];
 
 app.get("/api", (request, response) => {
-  response.send(`
-  <p>Phonebook has info for ${phonebook.length} people</p>
-  <p>${new Date().toISOString()}</p>
-  `);
+  Person.find({}).then(persons => {
+    response.json(persons);
+    console.log(persons);
+  })
 });
 
 app.get("/api/persons", (request, response) => {
@@ -66,32 +73,33 @@ app.get("/api/persons/:id", (request, response) => {
   }
 });
 
-app.delete('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
-    phonebook = phonebook.filter(person => person.id !== id)
-  
-    response.status(204).end()
-  })
+app.delete("/api/persons/:id", (request, response) => {
+  const id = Number(request.params.id);
+  phonebook = phonebook.filter((person) => person.id !== id);
+
+  response.status(204).end();
+});
 
 app.post("/api/persons", (request, response) => {
+  const found = phonebook.find(
+    (person) => person.name.toLowerCase() === request.body.name.toLowerCase()
+  );
 
-    const found = phonebook.find((person) => person.name.toLowerCase() === request.body.name.toLowerCase());
+  if (found) {
+    response.status(400).json({
+      error: "name must be unique",
+    });
+  }
 
-    if (found) {
-        response.status(400).json({
-            error: 'name must be unique'
-        });
-    }
+  const newPerson = {
+    name: request.body.name,
+    number: request.body.number,
+    id: Math.floor(Math.random() * 1000),
+  };
 
-    const newPerson = {
-        name: request.body.name,
-        number: request.body.number,
-        id: Math.floor(Math.random() * 1000),
-    }
+  phonebook.push(newPerson);
 
-    phonebook.push(newPerson);
-
-    response.status(200).json(newPerson);
+  response.status(200).json(newPerson);
 });
 
 const PORT = process.env.PORT || 3001;
