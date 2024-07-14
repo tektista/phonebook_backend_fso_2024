@@ -25,7 +25,6 @@ const requestLogger = (request, response, next) => {
   console.log("---");
   next();
 };
-
 //app.use(requestLogger);
 
 let phonebook = [
@@ -82,30 +81,18 @@ app.delete("/api/persons/:id", (request, response) => {
 });
 
 app.post("/api/persons", (request, response) => {
-  // const found = phonebook.find(
-  //   (person) => person.name.toLowerCase() === request.body.name.toLowerCase()
-  // );
-
-  // if (found) {
-  //   response.status(400).json({
-  //     error: "name must be unique",
-  //   });
-  // }
-
-  const newPerson = new Person({
+  const person = new Person({
     name: request.body.name,
-    number: request.body.number,
+    number: request.body.number
   });
 
-  if (newPerson.name && newPerson.number) {
-    contact.save().then((result) => {
-      console.log(`added ${newName} number ${newNumber} to phonebook`);
-      mongoose.connection.close();
-    });
+  person
+    .save()
+    .then((savedPerson) => {
+      response.json(savedPerson);
+    })
+    .catch((error) => console.log(error));
 
-    response.status(200).json(newPerson);
-  }
-  
 });
 
 const PORT = process.env.PORT || 3001;
