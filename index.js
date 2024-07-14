@@ -1,8 +1,8 @@
 const express = require("express");
-const mongoose = require('mongoose')
+const mongoose = require("mongoose");
 const morgan = require("morgan");
 const cors = require("cors");
-const Person = require('./models/Person')
+const Person = require("./models/Person");
 const app = express();
 
 app.use(express.static("dist"));
@@ -52,14 +52,15 @@ let phonebook = [
 ];
 
 app.get("/api", (request, response) => {
-  Person.find({}).then(persons => {
+  Person.find({}).then((persons) => {
     response.json(persons);
-    console.log(persons);
-  })
+  });
 });
 
 app.get("/api/persons", (request, response) => {
-  response.json(phonebook);
+  Person.find({}).then((persons) => {
+    response.json(persons);
+  });
 });
 
 app.get("/api/persons/:id", (request, response) => {
@@ -81,25 +82,30 @@ app.delete("/api/persons/:id", (request, response) => {
 });
 
 app.post("/api/persons", (request, response) => {
-  const found = phonebook.find(
-    (person) => person.name.toLowerCase() === request.body.name.toLowerCase()
-  );
+  // const found = phonebook.find(
+  //   (person) => person.name.toLowerCase() === request.body.name.toLowerCase()
+  // );
 
-  if (found) {
-    response.status(400).json({
-      error: "name must be unique",
-    });
-  }
+  // if (found) {
+  //   response.status(400).json({
+  //     error: "name must be unique",
+  //   });
+  // }
 
-  const newPerson = {
+  const newPerson = new Person({
     name: request.body.name,
     number: request.body.number,
-    id: Math.floor(Math.random() * 1000),
-  };
+  });
 
-  phonebook.push(newPerson);
+  if (newPerson.name && newPerson.number) {
+    contact.save().then((result) => {
+      console.log(`added ${newName} number ${newNumber} to phonebook`);
+      mongoose.connection.close();
+    });
 
-  response.status(200).json(newPerson);
+    response.status(200).json(newPerson);
+  }
+  
 });
 
 const PORT = process.env.PORT || 3001;
