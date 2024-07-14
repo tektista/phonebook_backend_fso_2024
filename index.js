@@ -25,30 +25,6 @@ const requestLogger = (request, response, next) => {
   console.log("---");
   next();
 };
-//app.use(requestLogger);
-
-let phonebook = [
-  {
-    name: "Arto Hellas",
-    number: "040-123456",
-    id: 1,
-  },
-  {
-    name: "Ada Lovelace",
-    number: "39-44-5323523",
-    id: 2,
-  },
-  {
-    name: "Dan Abramov",
-    number: "12-43-234345",
-    id: 3,
-  },
-  {
-    name: "Mary Poppendieck",
-    number: "39-23-6423122",
-    id: 4,
-  },
-];
 
 app.get("/api", (request, response) => {
   Person.find({}).then((persons) => {
@@ -63,27 +39,32 @@ app.get("/api/persons", (request, response) => {
 });
 
 app.get("/api/persons/:id", (request, response) => {
-  const id = Number(request.params.id);
-  const person = phonebook.find((person) => person.id === id);
-
-  if (person) {
-    response.json(person);
-  } else {
-    response.status(404).end();
-  }
+  Person.findById(request.params.id)
+    .then((person) => {
+      if (person) {
+        response.json(person);
+      } else {
+        response.status(400).send({ error: "malformatted id" });
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+      response.status(500).end();
+    });
 });
 
 app.delete("/api/persons/:id", (request, response) => {
-  const id = Number(request.params.id);
-  phonebook = phonebook.filter((person) => person.id !== id);
-
-  response.status(204).end();
+  Person.findByIdAndRemove(request.params.id)
+    .then(() => {
+      response.status(204).end();
+    })
+    .catch((error) => next(error));
 });
 
 app.post("/api/persons", (request, response) => {
   const person = new Person({
     name: request.body.name,
-    number: request.body.number
+    number: request.body.number,
   });
 
   person
@@ -92,7 +73,6 @@ app.post("/api/persons", (request, response) => {
       response.json(savedPerson);
     })
     .catch((error) => console.log(error));
-
 });
 
 const PORT = process.env.PORT || 3001;
